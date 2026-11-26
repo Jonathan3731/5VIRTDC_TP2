@@ -1,0 +1,49 @@
+# Fiche du TP : la SEULE source des valeurs de l'infrastructure.
+# Copier en fiche.yml (non commitee) puis adapter :  cp fiche.exemple.yml fiche.yml
+# Aucun secret ici : mots de passe et jetons passent par des variables d'environnement.
+
+domaine: cybersadiver.lan
+cluster: pve-cyber
+
+noeuds:
+  pve1: { ip: 172.19.0.11 }
+  pve2: { ip: 172.19.0.12 }
+  pve3: { ip: 172.19.0.13 }
+
+front:
+  pont: vmbr0
+  mtu: 1500
+  reseau: 172.19.0.0/16
+  passerelle: 172.19.0.1
+  dns: 8.8.8.8
+
+back:
+  pont: vback
+  reseau: 10.0.30.0/24
+  mtu: 1450
+
+postes_admin:
+  - 172.19.0.50   # a adapter : IP des postes d'administration
+
+stockage: local-zfs
+stockage_partage: cs-nfs
+pool: cs-services
+
+administrateurs:
+  - tomy
+  - jojo
+  - momo
+  - romain
+  - soulay
+  - matheo
+
+invites:
+  cs_dns: 172.19.0.101
+  cs_web: 172.19.0.102
+  cs_web_back: 10.0.30.102
+  cs_bdd: 10.0.30.103
+
+modele_vm: { vmid: 900, noeud: pve1 }
+lxc_template: debian-13-standard_13.1-2_amd64.tar.zst
+
+cle_ssh: ~/.ssh/id_cybersadiver.pub
