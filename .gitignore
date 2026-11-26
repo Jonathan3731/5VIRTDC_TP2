@@ -1,0 +1,18 @@
+# Valeurs reelles du TP : jamais commitees (copie de fiche.exemple.yml)
+fiche.yml
+
+# Etat OpenTofu : contient des secrets
+*.tfstate*
+
+# Cache des providers (le fichier .terraform.lock.hcl, lui, EST versionne)
+.terraform/
+
+# Variables avec secrets
+*.tfvars
+
+# Genere pour SSH / Ansible
+.ssh_config
+
+# Cles et certificats
+*.pem
+id_*
