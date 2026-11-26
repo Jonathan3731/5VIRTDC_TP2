@@ -4,7 +4,7 @@
 
 Reconstruction du cluster Proxmox VE `pve-cyber` (3 nœuds) uniquement à partir de ce dépôt,
 avec OpenTofu et Ansible. Aucune modification manuelle en dehors de l'installation de
-Proxmox VE, de la copie de la clé SSH et de la création du cluster.
+Proxmox VE et de la copie de la clé SSH.
 
 ## Structure du dépôt
 
@@ -22,8 +22,8 @@ Une couche par dossier, exécutées dans un ordre fixe.
 
 ## Prérequis
 
-- OpenTofu : `<version>` (`tofu version`)
-- Ansible : `<version>` (`ansible --version`), sous Linux ou WSL
+- OpenTofu : `1.13.9` (`tofu version`)
+- Ansible : `` (`ansible --version`), sous Linux ou WSL
 - Provider OpenTofu : `bpg/proxmox` `0.123.1`
 - Collections Ansible : `community.proxmox`, `community.mysql`
 - Git
