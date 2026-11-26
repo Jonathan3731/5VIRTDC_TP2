@@ -1,10 +1,4 @@
-# CyberSadiver — dossier Markdown fusionné
-
-Ce fichier rassemble les trois documents de travail fournis. Les textes d’origine sont conservés ci-dessous dans leur intégralité. La synthèse finale relève les écarts à arbitrer au regard du TP PDF. Les procédures et commandes reproduites sont du contenu documentaire, pas des actions exécutées sur l’infrastructure.
-
----
-
-## Source : README étape 0
+# CyberSadiver — 5VIRTDC
 
 # CyberSadiver : infrastructure en code
 
