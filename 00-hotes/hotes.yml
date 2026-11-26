@@ -1,0 +1,128 @@
+---
+# Etape 1 : configuration des trois noeuds Proxmox VE 9 (Debian 13 "trixie").
+# Lancer deux fois : le second passage doit afficher changed=0.
+- import_playbook: inventaire.yml
+
+- name: Configuration commune des noeuds
+  hosts: noeuds
+  vars:
+    fiche: "{{ lookup('ansible.builtin.file', playbook_dir + '/../fiche.yml') | from_yaml }}"
+  tasks:
+    # --- Depots (format deb822) ---
+    - name: Depot pve-no-subscription
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/pve-no-subscription.sources
+        mode: "0644"
+        content: |
+          Types: deb
+          URIs: http://download.proxmox.com/debian/pve
+          Suites: trixie
+          Components: pve-no-subscription
+          Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+
+    - name: Depot entreprise PVE desactive
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/pve-enterprise.sources
+        mode: "0644"
+        content: |
+          Types: deb
+          URIs: https://enterprise.proxmox.com/debian/pve
+          Suites: trixie
+          Components: pve-enterprise
+          Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+          Enabled: false
+
+    - name: Depot entreprise Ceph desactive
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/ceph.sources
+        mode: "0644"
+        content: |
+          Types: deb
+          URIs: https://enterprise.proxmox.com/debian/ceph-squid
+          Suites: trixie
+          Components: enterprise
+          Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+          Enabled: false
+
+    - name: Mise a jour des paquets
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+        upgrade: dist
+
+    # --- Heure ---
+    - name: Installer chrony
+      ansible.builtin.apt:
+        name: chrony
+        state: present
+
+    - name: Chrony sur fr.pool.ntp.org
+      ansible.builtin.lineinfile:
+        path: /etc/chrony/chrony.conf
+        regexp: '^pool '
+        line: pool fr.pool.ntp.org iburst
+      notify: Redemarrer chrony
+
+    - name: Chrony active et demarre
+      ansible.builtin.service:
+        name: chrony
+        enabled: true
+        state: started
+
+    # --- Noms : les trois noeuds dans /etc/hosts (nom court et nom complet) ---
+    - name: Entrees /etc/hosts des noeuds
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '^{{ item.value.ip | regex_escape }}\s'
+        line: "{{ item.value.ip }} {{ item.key }}.{{ fiche.domaine }} {{ item.key }}"
+      loop: "{{ fiche.noeuds | dict2items }}"
+
+    # --- dnsmasq : installe, service par defaut desactive (le SDN l'utilisera) ---
+    - name: Installer dnsmasq
+      ansible.builtin.apt:
+        name: dnsmasq
+        state: present
+
+    - name: dnsmasq arrete et desactive
+      ansible.builtin.service:
+        name: dnsmasq
+        enabled: false
+        state: stopped
+
+  handlers:
+    - name: Redemarrer chrony
+      ansible.builtin.service:
+        name: chrony
+        state: restarted
+
+- name: Serveur NFS sur le troisieme noeud
+  hosts: serveur_nfs
+  vars:
+    fiche: "{{ lookup('ansible.builtin.file', playbook_dir + '/../fiche.yml') | from_yaml }}"
+  tasks:
+    - name: Jeu de donnees ZFS pour NFS
+      ansible.builtin.command: zfs create rpool/nfs
+      args:
+        creates: /rpool/nfs
+
+    - name: Installer nfs-kernel-server
+      ansible.builtin.apt:
+        name: nfs-kernel-server
+        state: present
+
+    - name: Export NFS vers le reseau de gestion
+      ansible.builtin.lineinfile:
+        path: /etc/exports
+        regexp: '^/rpool/nfs\s'
+        line: "/rpool/nfs {{ fiche.front.reseau }}(rw,sync,no_subtree_check,no_root_squash)"
+      notify: Recharger les exports
+
+    - name: Serveur NFS actif
+      ansible.builtin.service:
+        name: nfs-server
+        enabled: true
+        state: started
+
+  handlers:
+    - name: Recharger les exports
+      ansible.builtin.command: exportfs -ra

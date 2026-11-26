@@ -1,0 +1,25 @@
+---
+# Inventaire statique construit depuis fiche.yml (a la racine du depot).
+# Les noeuds sont joints en SSH root par cle, sur leur adresse de gestion.
+- name: Construire l'inventaire des noeuds
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    fiche: "{{ lookup('ansible.builtin.file', playbook_dir + '/../fiche.yml') | from_yaml }}"
+  tasks:
+    - name: Declarer les noeuds dans le groupe noeuds
+      ansible.builtin.add_host:
+        name: "{{ item.key }}"
+        ansible_host: "{{ item.value.ip }}"
+        ansible_user: root
+        ansible_ssh_private_key_file: "{{ fiche.cle_ssh_privee }}"
+        groups: noeuds
+      loop: "{{ fiche.noeuds | dict2items }}"
+      changed_when: false
+
+    - name: Le troisieme noeud porte le serveur NFS
+      ansible.builtin.add_host:
+        name: "{{ (fiche.noeuds | dict2items | last).key }}"
+        groups: serveur_nfs
+      changed_when: false
