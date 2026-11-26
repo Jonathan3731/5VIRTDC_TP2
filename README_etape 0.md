@@ -20,8 +20,8 @@ Une couche par dossier, exécutées dans un ordre fixe.
 
 ## Prérequis
 
-- OpenTofu : (`tofu version`)
-- Ansible : (`ansible --version`), sous Linux ou WSL
+- OpenTofu : v1.13.10 (`tofu version`)
+- Ansible : v2.20.1 (`ansible --version`), sous Linux ou WSL
 - Provider OpenTofu : `bpg/proxmox` `0.123.1`
 - Collections Ansible : `community.proxmox`, `community.mysql`
 - Git
